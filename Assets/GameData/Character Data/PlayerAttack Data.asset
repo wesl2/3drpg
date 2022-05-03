@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1bdb0fcd1696eb4b9c2eea25b5f04a4, type: 3}
+  m_Name: PlayerAttack Data
+  m_EditorClassIdentifier: 
+  AttackRange: 1.5
+  SkillRange: 0
+  CoolDown: 0.7
+  MinDemage: 4
+  MaxDemage: 6
+  CriticalMultipler: 1.5
+  CriticalChance: 0.2
