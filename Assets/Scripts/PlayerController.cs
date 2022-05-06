@@ -5,12 +5,13 @@ using System;
 using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
-{
+{           
      NavMeshAgent NMA;
      Animator Anim;
     GameObject AttackTarget;
     CharacterStates characterstates;
     float lastAttackTime = 0.5f;
+    bool isDead;
      private void Awake()
     {
         NMA = GetComponent<NavMeshAgent>();
@@ -24,8 +25,7 @@ public class PlayerController : MonoBehaviour
     }
     private void Update()
     {
-        Anim.SetFloat("Speed", NMA.velocity.sqrMagnitude);//navmesh自带的
-                                                          //参数：velocity
+        Anim.SetFloat("Speed", NMA.velocity.sqrMagnitude);//navmesh自带的参数：velocity
     }
     private void FixedUpdate()
     {
@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
     }
     void EventAttack(GameObject target)
     {
-
+        characterstates.IsCritical = UnityEngine.Random.value <= characterstates.criticalChance; 
         if(target !=null)
         {
           AttackTarget = target;
@@ -57,8 +57,7 @@ public class PlayerController : MonoBehaviour
         NMA.isStopped = false;
         //update不能直接写循环！！
         
-        //TODO:后期要更改这个固定值。
-        while (Vector3.Distance(transform.position, AttackTarget.transform.position) > characterstates.attackRange)
+         while (Vector3.Distance(transform.position, AttackTarget.transform.position) > characterstates.attackRange)
         {
             transform.LookAt(AttackTarget.transform);
             NMA.destination = AttackTarget.transform.position;
@@ -73,8 +72,15 @@ public class PlayerController : MonoBehaviour
 
         if (lastAttackTime < 0f)
         {
+            Anim.SetBool("Critical", characterstates.IsCritical);
             Anim.SetTrigger("Attack");
-            lastAttackTime = 0.5f;
+            lastAttackTime = characterstates.coolDown;//属性直接获取
         }
+    }
+
+    void Hit()
+    {
+        var enemystates = AttackTarget.GetComponent<CharacterStates>();
+        characterstates.TakeDemage(characterstates, enemystates);
     }
 }

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: PlayerAttack Data
   m_EditorClassIdentifier: 
   AttackRange: 1.5
-  SkillRange: 0
+  SkillRange: 3
   CoolDown: 0.7
   MinDemage: 4
   MaxDemage: 6
-  CriticalMultipler: 1.5
+  CriticalMultipler: 2
   CriticalChance: 0.2

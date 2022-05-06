@@ -87,6 +87,7 @@ using System;
             }
             if(Rhit.collider.gameObject.tag == "Enemy")
             {
+               // Debug.Log("Invoke");
                 OnEnemyClicked?.Invoke(Rhit.collider.gameObject);
             }
         }

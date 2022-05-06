@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1bdb0fcd1696eb4b9c2eea25b5f04a4, type: 3}
   m_Name: Sllime Attack Data
   m_EditorClassIdentifier: 
-  AttackRange: 1.5
+  AttackRange: 2
   SkillRange: 2
   CoolDown: 2.5
   MinDemage: 2

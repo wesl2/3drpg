@@ -14,7 +14,11 @@ public class EnemyController : MonoBehaviour
     public EnemyStates estate;
     public float lookAtTime;
     private float remainLookAtTime;
-
+     Vector3 guardposset;
+    Quaternion guardqua;
+    [Header("------- guard settings---------")]
+    private Vector3 GuardPos;
+    private Quaternion GuardQua;
     [Header("------- patrol settings ---------")]
     public float patrolRange;
     private Vector3 patrolPoint;
@@ -25,27 +29,24 @@ public class EnemyController : MonoBehaviour
     bool IsWalk;
     bool IsChase;
     bool IsFollow;
-
-    bool isAttack;
+    bool isDead;
+     bool isAttack;
     CharacterStates EnemyData;
 
    public bool IsGuard;
 
       void Awake()
     {
+        guardposset = transform.position;
+        //TODO:这么写有什么问题吗？
+        //guardqua =Quaternion.Euler(transform.eulerAngles);
+        guardqua = transform.rotation;
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         basicPoint = transform.position;
         speed = agent.speed;
         EnemyData = GetComponent<CharacterStates>();
         remainLookAtTime = lookAtTime;
-    }
-    
-    private void Update()
-    {
-        SwitchStates();
-        SwitchAnimations();
-         
     }
     private void Start()
     {
@@ -61,24 +62,64 @@ public class EnemyController : MonoBehaviour
             GetNewPatrolPoint();
         }
      }
+    
+    private void Update()
+    {
+
+        if (EnemyData.currentHealth == 0)
+        {
+            isDead = true;
+         }
+
+        SwitchStates();
+        SwitchAnimations();
+         
+    }
+
     void SwitchAnimations()
     { 
+        
         anim.SetBool("Walk", IsWalk);
         anim.SetBool("Chase", IsChase);
         anim.SetBool("Follow", IsFollow);
         anim.SetBool("Critical", EnemyData.IsCritical);
+         anim.SetBool("Dead",isDead);
     }
 
     void SwitchStates()
     {
-        if (FoundPlayer())
+         if(isDead == true)
+        {
+             
+            estate = EnemyStates.DEAD;
+        }
+       else if (FoundPlayer())
         {
             estate = EnemyStates.CHASE;
         }
         switch (estate)
         {
             case EnemyStates.GUARD:
-               
+                anim.SetLayerWeight(0, 1);
+                IsChase = false;
+                IsWalk = false;
+                //agent.isStopped = false;
+               // GuardPos = guardposset;
+                //GuardQua = guardqua;
+                if(transform.position != guardposset)
+                {
+                    IsWalk = true;
+                    
+                    agent.destination = guardposset;
+                    if(Vector3.Distance(transform.position, guardposset) <=agent.stoppingDistance)
+                    {
+                        IsFollow = false;
+                       // agent.isStopped = true;
+                       IsWalk = false;
+                        transform.rotation = Quaternion.Lerp(transform.rotation,guardqua,0.01f);
+                    }
+                }
+
                 break;
             case EnemyStates.PATROL:
                 anim.SetLayerWeight(0, 1);
@@ -111,23 +152,22 @@ public class EnemyController : MonoBehaviour
                         agent.destination = transform.position;
                         remainLookAtTime -= Time.deltaTime;
                     }
+                    else if (IsGuard == true)
+                    { estate = EnemyStates.GUARD; }
                     else
-                    {
-                        if (IsGuard == true)
-                        { estate = EnemyStates.GUARD; }
-                        else
-                        { estate = EnemyStates.PATROL; }
-                        IsFollow = false;
-                        agent.destination = transform.position;
-
-                    }
+                    { estate = EnemyStates.PATROL; }
                 }
-                else//find player
+                else
                 {
+
                     IsFollow = true;
                     agent.isStopped = false;
                     agent.destination = AttackTarget.transform.position;
-                    if (TargetInAttactRange() || TargetInSkillRange())
+
+                    //TODO:check the effection of these two lines
+                    //IsFollow = false;
+                    //agent.destination = transform.position;
+                 if (TargetInAttactRange() || TargetInSkillRange())
                     {
                          IsFollow = false;
                         agent.destination = transform.position;
@@ -137,11 +177,15 @@ public class EnemyController : MonoBehaviour
                             StartCoroutine(Attack_CD());
                             isAttack = false;
                         }
-                    }
                 }
+                 }
+                
                 break;
             case EnemyStates.DEAD:
+                anim.SetLayerWeight(2, 1);
+                agent.enabled = false;
 
+                Destroy(gameObject, 2f);
                 break;
         }
     }
@@ -152,8 +196,7 @@ public class EnemyController : MonoBehaviour
         anim.SetLayerWeight(1, 1);
         transform.LookAt(AttackTarget.transform.position);
         EnemyData.IsCritical = (Random.value) <= EnemyData.criticalChance;
-
-        if (TargetInAttactRange())
+         if (TargetInAttactRange())
         {
             anim.SetTrigger("Attack");
         }
@@ -208,7 +251,7 @@ public class EnemyController : MonoBehaviour
 
     bool TargetInAttactRange()
     {
-        if (Vector3.Distance(transform.position, AttackTarget.transform.position) < EnemyData.attackRange)
+        if (Vector3.Distance(transform.position, AttackTarget.transform.position) < EnemyData.attackData.AttackRange)
         {
             return true;
         }
@@ -226,7 +269,14 @@ public class EnemyController : MonoBehaviour
             return false;
     }
 
-
+    void Hit()
+    {
+        if(AttackTarget != null)
+        {
+            var playerstates = AttackTarget.gameObject.GetComponent<CharacterStates>();
+            EnemyData.TakeDemage(EnemyData, playerstates);
+        }
+    }
 
     private void OnDrawGizmosSelected()
     {
